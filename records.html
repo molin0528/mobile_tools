@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <meta name="theme-color" content="#673AB7">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="考勤记录">
+    <meta name="application-name" content="考勤记录">
+    <meta name="format-detection" content="telephone=no">
+    <title>考勤记录</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+</head><body>
+    <div class="app-bar">
+        <span class="app-bar-back" onclick="location.href='index.html'"></span>
+        <span class="app-bar-title">考勤记录</span>
+    </div>
+
+    <div class="container">
+        <div class="btn-row">
+            <button class="btn-primary btn-inline" onclick="openModal()">添加记录</button>
+            <button class="btn-secondary btn-inline" onclick="location.href='history.html'">历史考勤</button>
+        </div>
+        <div class="card">
+            <div class="table-wrap">
+                <table id="recordTable">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>时长</th>
+                            <th>薪资</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="empty-state" style="display:none">
+                <div class="empty-icon">📋</div>
+                <div class="empty-title">暂无记录</div>
+                <div class="empty-desc">点击上方按钮添加记录</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+        <div class="modal-box" style="position:relative;">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div class="modal-title" id="modalTitle">添加记录</div>
+            <div class="form-group">
+                <label class="form-label" for="modalDate">日期</label>
+                <input class="form-control" id="modalDate" type="date">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="modalHours">时长(小时)</label>
+                <input class="form-control" id="modalHours" type="number" step="0.5" value="10" placeholder="请输入工作时长">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="modalSalary">薪资(元)</label>
+                <input class="form-control" id="modalSalary" type="number" value="250" placeholder="请输入薪资金额">
+            </div>
+            <div class="form-row">
+                <button class="btn-cancel" onclick="closeModal()">取消</button>
+                <button class="btn-save" onclick="saveModal()">保存</button>
+            </div>
+        </div>
+    </div>
+    <script>
+var defaultData=[{id:1,d:'2026-11-15',h:8,s:400},{id:2,d:'2026-11-16',h:8.5,s:425},{id:3,d:'2026-11-17',h:7.5,s:375},{id:4,d:'2026-11-18',h:8,s:400},{id:5,d:'2026-11-19',h:9,s:450}];
+function loadData(){var stored=localStorage.getItem('attendanceData');if(stored){try{return JSON.parse(stored)}catch(e){}}return defaultData.slice()}
+function saveData(data){localStorage.setItem('attendanceData',JSON.stringify(data))}
+var editingId=-1;
+function groupByMonth(data){var groups={};data.forEach(function(r){var m=r.d.substring(0,7);if(!groups[m])groups[m]=[];groups[m].push(r)});return groups}
+function toggleMonth(m){var rows=document.querySelectorAll('[data-month="'+m+'"]');var icon=document.getElementById('icon-'+m);var collapsed=icon.textContent==='▶';if(collapsed){rows.forEach(function(r){r.style.display='';void r.offsetHeight;r.classList.remove('hiding')});icon.textContent='▼'}else{rows.forEach(function(r){r.classList.add('hiding')});icon.textContent='▶';setTimeout(function(){rows.forEach(function(r){if(r.classList.contains('hiding')){r.style.display='none'}})},300)}}
+function renderTable(){var data=loadData();var now=new Date();var cm=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);data=data.filter(function(r){return r.d.substring(0,7)===cm});data.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0});var tbody=document.getElementById('recordBody');var empty=document.getElementById('emptyState');tbody.innerHTML='';if(data.length===0){empty.style.display='block';return}empty.style.display='none';data.forEach(function(r){var row=document.createElement('tr');row.className='record-row';row.innerHTML='<td>'+r.d+'</td><td>'+r.h+'</td><td>'+r.s+'</td><td class="actions"><button class="btn-edit" onclick="openEditModal('+r.id+')">编辑</button><button class="btn-delete" onclick="deleteRecord('+r.id+')">删除</button></td>';tbody.appendChild(row)})}
+function deleteRecord(id){if(!confirm('确认删除这条记录？'))return;var data=loadData();data=data.filter(function(r){return r.id!==id});saveData(data);renderTable()}
+function openEditModal(id){var data=loadData();var rec=null;for(var i=0;i<data.length;i++){if(data[i].id===id){rec=data[i];break}}if(!rec){alert('记录不存在');return}editingId=id;document.getElementById('modalTitle').textContent='编辑记录';document.getElementById('modalDate').value=rec.d;document.getElementById('modalHours').value=rec.h;document.getElementById('modalSalary').value=rec.s;document.getElementById('modalOverlay').classList.add('active')}
+function openModal(){editingId=-1;document.getElementById('modalTitle').textContent='添加记录';document.getElementById('modalDate').value='';document.getElementById('modalHours').value=10;document.getElementById('modalSalary').value=250;document.getElementById('modalOverlay').classList.add('active')}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('active')}
+function closeModalOnBg(e){if(e.target===document.getElementById('modalOverlay'))closeModal()}
+function saveModal(){var date=document.getElementById('modalDate').value;var hours=parseFloat(document.getElementById('modalHours').value);var salary=parseFloat(document.getElementById('modalSalary').value);if(!date||isNaN(hours)||isNaN(salary)){alert('请填写完整信息');return}var data=loadData();if(editingId===-1){var newId=data.length?Math.max.apply(null,data.map(function(x){return x.id}))+1:1;data.push({id:newId,d:date,h:hours,s:salary})}else{var rec=null;for(var i=0;i<data.length;i++){if(data[i].id===editingId){rec=data[i];break}}if(rec){rec.d=date;rec.h=hours;rec.s=salary}}saveData(data);editingId=-1;closeModal();renderTable()}
+renderTable();
+</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js', {scope: './'})
+                    .then((reg) => console.log('SW registered:', reg.scope))
+                    .catch((err) => console.log('SW register failed:', err));
+            });
+        }
+    </script>
+</body></html>

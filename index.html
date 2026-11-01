@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <meta name="theme-color" content="#673AB7">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="考勤打卡">
+    <meta name="application-name" content="考勤打卡">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-TileColor" content="#673AB7">
+    <title>考勤打卡 - 安卓版</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-bar">
+        <span class="app-bar-title">考勤打卡</span>
+    </div>
+    <div class="container">
+        <div class="card today-card">
+            <div class="card-title">本月考勤</div>
+            <div class="today-item">
+                <span class="today-label">时长</span>
+                <span class="today-value" id="duration">0.0 小时</span>
+            </div>
+            <button class="btn-primary" onclick="location.href='records.html'">编辑记录</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">本月统计</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="workDays">0</div>
+                    <div class="stat-label">工作天数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalHours">0h</div>
+                    <div class="stat-label">总时长</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalSalary">0元</div>
+                    <div class="stat-label">总薪资</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaultRecords = [
+            {id:1,date:'2026-11-15',hours:8,salary:400,status:'正常',remark:'正常考勤'},
+            {id:2,date:'2026-11-16',hours:8.5,salary:425,status:'加班',remark:'加班半小时'},
+            {id:3,date:'2026-11-17',hours:7.5,salary:375,status:'早退',remark:'早退1小时'},
+            {id:4,date:'2026-11-18',hours:8,salary:400,status:'正常',remark:'正常考勤'},
+            {id:5,date:'2026-11-19',hours:9,salary:450,status:'加班',remark:'全天加班'}        ];
+        function loadRecords() {
+            const stored = localStorage.getItem('attendanceData');
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    return data.map(r => ({id:r.id, date:r.d, hours:r.h, salary:r.s, status:'正常', remark:''}));
+                } catch(e) {}
+            }
+            return defaultRecords.slice();
+        }
+        function getCurrentMonthRecords(records) {
+            const now = new Date();
+            return records.filter(function(x) {
+                const d = new Date(x.date);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            });
+        }
+        const allRecords = loadRecords();
+        const records = getCurrentMonthRecords(allRecords);
+        const totalHours = records.reduce((s,r) => s + r.hours, 0);
+        document.getElementById('duration').textContent = totalHours.toFixed(1) + '小时';
+        document.getElementById('workDays').textContent = records.length;
+        document.getElementById('totalHours').textContent = totalHours.toFixed(1) + 'h';
+        document.getElementById('totalSalary').textContent = records.reduce((s,r) => s + r.salary, 0) + '元';
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js', {scope: './'})
+                    .then((reg) => console.log('SW registered:', reg.scope))
+                    .catch((err) => console.log('SW register failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>

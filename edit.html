@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <meta name="theme-color" content="#673AB7">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="编辑记录">
+    <meta name="application-name" content="编辑记录">
+    <meta name="format-detection" content="telephone=no">
+    <title>编辑记录</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+</head><body>
+    <div class="app-bar">
+        <span class="app-bar-back" onclick="location.href='records.html'"></span>
+        <span class="app-bar-title" id="pageTitle">编辑记录</span>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="form-group">
+                <label class="form-label" for="editDate">日期</label>
+                <input class="form-control" id="editDate" type="date">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="editHours">时长(小时)</label>
+                <input class="form-control" id="editHours" type="number" step="0.5" value="10" placeholder="请输入工作时长">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="editSalary">薪资(元)</label>
+                <input class="form-control" id="editSalary" type="number" value="250" placeholder="请输入薪资金额">
+            </div>
+            <div class="form-row">
+                <button class="btn-cancel" onclick="location.href='records.html'">取消</button>
+                <button class="btn-save" onclick="saveEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+<script>
+var defaultData=[{id:1,d:'2026-11-15',h:8,s:400},{id:2,d:'2026-11-16',h:8.5,s:425},{id:3,d:'2026-11-17',h:7.5,s:375},{id:4,d:'2026-11-18',h:8,s:400},{id:5,d:'2026-11-19',h:9,s:450}];
+function loadData(){var stored=localStorage.getItem('attendanceData');if(stored){try{return JSON.parse(stored)}catch(e){}}return defaultData.slice()}
+function saveData(data){localStorage.setItem('attendanceData',JSON.stringify(data))}
+var r=loadData();
+var params=new URLSearchParams(location.search);
+var idParam=params.get('id');
+var editId=-1;
+if(idParam!==null&&idParam!==''){
+  var id=parseInt(idParam);
+  if(!isNaN(id)){
+    editId=id;
+    var rec=null;
+    for(var i=0;i<r.length;i++){if(r[i].id===id){rec=r[i];break}}
+    if(rec){
+      document.getElementById('pageTitle').textContent='编辑记录';
+      document.getElementById('editDate').value=rec.d;
+      document.getElementById('editHours').value=rec.h;
+      document.getElementById('editSalary').value=rec.s;
+    }else{
+      document.getElementById('pageTitle').textContent='添加记录';
+      editId=-1;
+      document.getElementById('editHours').value=10;
+      document.getElementById('editSalary').value=250;
+    }
+  }
+}else{
+  document.getElementById('pageTitle').textContent='添加记录';
+  document.getElementById('editHours').value=10;
+  document.getElementById('editSalary').value=250;
+}
+function saveEdit(){var date=document.getElementById('editDate').value;var hours=parseFloat(document.getElementById('editHours').value);var salary=parseFloat(document.getElementById('editSalary').value);if(!date||isNaN(hours)||isNaN(salary)){alert('请填写完整信息');return}if(editId===-1){var newId=r.length?Math.max.apply(null,r.map(function(x){return x.id}))+1:1;r.push({id:newId,d:date,h:hours,s:salary})}else{var rec=null;for(var i=0;i<r.length;i++){if(r[i].id===editId){rec=r[i];break}}if(rec){rec.d=date;rec.h=hours;rec.s=salary}}saveData(r);location.href='records.html'}
+</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js', {scope: './'})
+                    .then((reg) => console.log('SW registered:', reg.scope))
+                    .catch((err) => console.log('SW register failed:', err));
+            });
+        }
+    </script>
+</body></html>
