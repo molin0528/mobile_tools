@@ -111,12 +111,31 @@
         function renderCal(){
             var y=calCur.getFullYear(), m=calCur.getMonth();
             document.getElementById('monthLabel').textContent=y+'年'+(m+1)+'月';
+            
+            // 计算该月统计数据
+            var totalDays=new Date(y,m+1,0).getDate();
+            var today=new Date();
+            var isCurrentMonth = (y===today.getFullYear() && m===today.getMonth());
+            var elapsedDays = isCurrentMonth ? today.getDate() : 
+                (y<today.getFullYear() || (y===today.getFullYear() && m<today.getMonth()) ? totalDays : 0);
+            
+            // 该月有记录的天数
+            var monthRecords = calData.filter(function(r){
+                var d=new Date(r.d);
+                return d.getFullYear()===y && d.getMonth()===m;
+            });
+            var monthWorkDays = monthRecords.length;
+            var restDays = Math.max(0, elapsedDays - monthWorkDays);
+            var remainingDays = Math.max(0, totalDays - elapsedDays);
+            
+            document.getElementById('restDays').textContent = restDays + '/' + Math.max(0, totalDays - 26);
+            document.getElementById('monthWorkDays').textContent = monthWorkDays;
+            document.getElementById('remainingDays').textContent = remainingDays;
+            
             var grid=document.getElementById('calGrid'); grid.innerHTML='';
             ['日','一','二','三','四','五','六'].forEach(function(h){var c=document.createElement('div');c.className='cal-cell header';c.textContent=h;grid.appendChild(c);});
             var firstDay=new Date(y,m,1).getDay();
-            var totalDays=new Date(y,m+1,0).getDate();
             for(var i=0;i<firstDay;i++){var c=document.createElement('div');c.className='cal-cell';grid.appendChild(c);}
-            var today=new Date();
             for(var d=1;d<=totalDays;d++){
                 var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
                 var has=calData.some(function(r){return r.d===ds;});
