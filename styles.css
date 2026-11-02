@@ -153,6 +153,12 @@ body {
     font-size: 12px;
     color: #757575;
 }
+.stat-card.stat-red { background: #ffebee !important; }
+.stat-card.stat-red .stat-value { color: #c62828 !important; }
+.stat-card.stat-green { background: #e8f5e9 !important; }
+.stat-card.stat-green .stat-value { color: #2e7d32 !important; }
+.stat-card.stat-blue { background: #e3f2fd !important; }
+.stat-card.stat-blue .stat-value { color: #1565c0 !important; }
 
 /* Primary Button */
 .btn-primary {
@@ -437,6 +443,18 @@ input[type="date"]::-webkit-outer-spin-button {
 .record-row.hiding {
     opacity: 0;
 }
+.summary-row td {
+    background: #f3e5f5;
+    color: #4a148c;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e1bee7;
+}
+.summary-cell {
+    text-align: center;
+    letter-spacing: 0.3px;
+}
 .toggle-icon {
     display: inline-block;
     margin-right: 6px;
@@ -552,3 +570,17 @@ table th:nth-child(3), table td:nth-child(3) {
     line-height: 1;
 }
 .modal-close:active { color: #333; }
+
+
+/* Calendar B (compact dots) */
+.cal-wrap { background:#fff; border-radius:12px; padding:12px; }
+.cal-nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.cal-nav button { background:#673AB7; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.cal-cell { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:11px; border-radius:6px; }
+.cal-cell.header { font-weight:600; color:#673AB7; }
+.cal-cell .dot { width:6px; height:6px; border-radius:50%; background:#2e7d32; margin-top:2px; }
+.cal-cell.today { background:#ede7f6; }
+.cal-legend { display:flex; gap:12px; margin-top:10px; font-size:12px; color:#757575; }
+.cal-legend span::before { content:''; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+.cal-legend .w::before { background:#2e7d32; }

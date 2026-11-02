@@ -20,15 +20,6 @@
         <span class="app-bar-title">考勤打卡</span>
     </div>
     <div class="container">
-        <div class="card today-card">
-            <div class="card-title">本月考勤</div>
-            <div class="today-item">
-                <span class="today-label">时长</span>
-                <span class="today-value" id="duration">0.0 小时</span>
-            </div>
-            <button class="btn-primary" onclick="location.href='records.html'">编辑记录</button>
-        </div>
-
         <div class="card">
             <div class="card-title">本月统计</div>
             <div class="stats-grid">
@@ -45,9 +36,34 @@
                     <div class="stat-label">总薪资</div>
                 </div>
             </div>
+            <button class="btn-primary" onclick="location.href='records.html'" style="margin-top:10px;">编辑记录</button>
+        </div>
+        <div class="card">
+            <div class="card-title">考勤日历</div>
+            <div class="cal-wrap">
+                <div class="cal-nav">
+                    <button onclick="shiftCal(-1)">◀</button>
+                    <span id="monthLabel" style="font-weight:600;"></span>
+                    <button onclick="shiftCal(1)">▶</button>
+                </div>
+                <div class="cal-grid" id="calGrid"></div>
+                <div class="stats-grid" style="margin-top:10px;">
+                    <div class="stat-card stat-red">
+                        <div class="stat-value" id="restDays">0</div>
+                        <div class="stat-label">已休息天数</div>
+                    </div>
+                    <div class="stat-card stat-green">
+                        <div class="stat-value" id="monthWorkDays">0</div>
+                        <div class="stat-label">已工作天数</div>
+                    </div>
+                    <div class="stat-card stat-blue">
+                        <div class="stat-value" id="remainingDays">0</div>
+                        <div class="stat-label">距离月底还剩</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
     <script>
         const defaultRecords = [
             {id:1,date:'2026-11-15',hours:8,salary:400,status:'正常',remark:'正常考勤'},
@@ -75,10 +91,46 @@
         const allRecords = loadRecords();
         const records = getCurrentMonthRecords(allRecords);
         const totalHours = records.reduce((s,r) => s + r.hours, 0);
-        document.getElementById('duration').textContent = totalHours.toFixed(1) + '小时';
         document.getElementById('workDays').textContent = records.length;
         document.getElementById('totalHours').textContent = totalHours.toFixed(1) + 'h';
         document.getElementById('totalSalary').textContent = records.reduce((s,r) => s + r.salary, 0) + '元';
+        const now2 = new Date();
+        const totalDays = new Date(now2.getFullYear(), now2.getMonth() + 1, 0).getDate();
+        const elapsedDays = now2.getDate();
+        const restDays = Math.max(0, elapsedDays - records.length);
+        const remainingDays = Math.max(0, totalDays - elapsedDays);
+        document.getElementById('restDays').textContent = restDays + '/' + Math.max(0, totalDays - 26);
+        document.getElementById('monthWorkDays').textContent = records.length;
+        document.getElementById('remainingDays').textContent = remainingDays;
+    </script>
+    <script>
+        function loadCalData(){var s=localStorage.getItem('attendanceData');if(s){try{return JSON.parse(s)}catch(e){}}return [{id:1,d:'2026-11-15',h:8,s:400},{id:2,d:'2026-11-16',h:8.5,s:425},{id:3,d:'2026-11-17',h:7.5,s:375},{id:4,d:'2026-11-18',h:8,s:400},{id:5,d:'2026-11-19',h:9,s:450}]}
+        var calData=loadCalData();
+        var calCur=new Date();
+        function shiftCal(n){calCur.setMonth(calCur.getMonth()+n);renderCal();}
+        function renderCal(){
+            var y=calCur.getFullYear(), m=calCur.getMonth();
+            document.getElementById('monthLabel').textContent=y+'年'+(m+1)+'月';
+            var grid=document.getElementById('calGrid'); grid.innerHTML='';
+            ['日','一','二','三','四','五','六'].forEach(function(h){var c=document.createElement('div');c.className='cal-cell header';c.textContent=h;grid.appendChild(c);});
+            var firstDay=new Date(y,m,1).getDay();
+            var totalDays=new Date(y,m+1,0).getDate();
+            for(var i=0;i<firstDay;i++){var c=document.createElement('div');c.className='cal-cell';grid.appendChild(c);}
+            var today=new Date();
+            for(var d=1;d<=totalDays;d++){
+                var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+                var has=calData.some(function(r){return r.d===ds;});
+                var isFuture = (y>today.getFullYear()) || (y===today.getFullYear() && m>today.getMonth()) || (y===today.getFullYear() && m===today.getMonth() && d>today.getDate());
+                var isToday = (d===today.getDate()&&m===today.getMonth()&&y===today.getFullYear());
+                var c=document.createElement('div'); 
+                var bg = has ? '#e8f5e9' : (isFuture ? '#e3f2fd' : '#ffebee');
+                c.style.background = bg;
+                c.className='cal-cell'+(isToday?' today':'');
+                c.textContent=d;
+                grid.appendChild(c);
+            }
+        }
+        renderCal();
     </script>
     <script>
         if ('serviceWorker' in navigator) {
