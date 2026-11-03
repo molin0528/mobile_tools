@@ -115,14 +115,37 @@ function loadRecords() {
         document.getElementById('monthWorkDays').textContent = records.length;
         document.getElementById('remainingDays').textContent = remainingDays;
 
-        function exportData(){
-            var data = localStorage.getItem('attendanceData');
+        async function exportData(){
+            var data = localStorage.getItem('attendanceData');    
             if(!data){alert('暂无数据可导出');return}
             var blob = new Blob([data], {type:'application/json'});
+            var filename = 'attendance_'+new Date().toISOString().slice(0,10)+'.json';
+
+            // 优先尝试原生保存对话框（可选择保存位置）
+            if(window.showSaveFilePicker){
+                try{
+                    var handle = await window.showSaveFilePicker({
+                        suggestedName: filename,
+                        types: [{
+                            description: 'JSON 文件',
+                            accept: {'application/json': ['.json']}
+                        }]
+                    });
+                    var writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    alert('数据已保存到：'+handle.name);
+                    return;
+                }catch(err){
+                    if(err.name!=='AbortError') console.log('showSaveFilePicker 失败:', err);
+                }
+            }
+
+            // 回退：传统下载（保存到默认下载文件夹）
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a');
             a.href = url;
-            a.download = 'attendance_'+new Date().toISOString().slice(0,10)+'.json';
+            a.download = filename;
             a.click();
             URL.revokeObjectURL(url);
         }
