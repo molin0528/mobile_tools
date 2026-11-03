@@ -125,9 +125,17 @@
                 return d.getFullYear()===y && d.getMonth()===m;
             });
             var monthWorkDays = monthRecords.length;
+            var monthTotalHours = monthRecords.reduce(function(s,r){return s + r.h;}, 0);
+            var monthTotalSalary = monthRecords.reduce(function(s,r){return s + r.s;}, 0);
             var restDays = Math.max(0, elapsedDays - monthWorkDays);
             var remainingDays = Math.max(0, totalDays - elapsedDays);
             
+            // 同步顶部“本月统计”三栏
+            document.getElementById('workDays').textContent = monthWorkDays;
+            document.getElementById('totalHours').textContent = monthTotalHours.toFixed(1) + 'h';
+            document.getElementById('totalSalary').textContent = monthTotalSalary + '元';
+            
+            // 同步日历下方三栏
             document.getElementById('restDays').textContent = restDays + '/' + Math.max(0, totalDays - 26);
             document.getElementById('monthWorkDays').textContent = monthWorkDays;
             document.getElementById('remainingDays').textContent = remainingDays;

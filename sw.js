@@ -1,6 +1,6 @@
 // Service Worker for offline support
 const CACHE_PREFIX = 'attendance-pwa-';
-const CACHE_NAME = CACHE_PREFIX + 'v39';
+const CACHE_NAME = CACHE_PREFIX + 'v40';
 
 const ASSETS = [
     './',
