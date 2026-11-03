@@ -62,6 +62,16 @@
                     </div>
                 </div>
             </div>
+        <div class="card">
+            <div class="card-title">数据备份</div>
+            <div style="display:flex; gap:8px; justify-content:center; padding:10px;">
+                <button class="btn-primary btn-inline" onclick="exportData()">导出数据</button>
+                <button class="btn-secondary btn-inline" onclick="document.getElementById('importFile').click()">导入数据</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+            </div>
+            <div style="font-size:12px; color:#757575; text-align:center; padding:8px;">
+                导出为 JSON 文件，可在其他设备导入恢复
+            </div>
         </div>
     </div>
     <script>
@@ -104,6 +114,35 @@ function loadRecords() {
         document.getElementById('restDays').textContent = restDays + '/' + Math.max(0, totalDays - 26);
         document.getElementById('monthWorkDays').textContent = records.length;
         document.getElementById('remainingDays').textContent = remainingDays;
+
+        function exportData(){
+            var data = localStorage.getItem('attendanceData');
+            if(!data){alert('暂无数据可导出');return}
+            var blob = new Blob([data], {type:'application/json'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'attendance_'+new Date().toISOString().slice(0,10)+'.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        function importData(evt){
+            var file = evt.target.files[0];
+            if(!file)return;
+            var reader = new FileReader();
+            reader.onload = function(e){
+                try{
+                    var json = JSON.parse(e.target.result);
+                    if(!Array.isArray(json)){throw new Error('数据格式错误')}
+                    localStorage.setItem('attendanceData', JSON.stringify(json));
+                    alert('导入成功，共 '+json.length+' 条记录');
+                    location.reload();
+                }catch(err){
+                    alert('导入失败：'+err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
     </script>
     <script>
         function loadCalData(){var s=localStorage.getItem('attendanceData');if(s){try{return JSON.parse(s).map(norm)}catch(e){}}return [{id:1,date:'2026-11-15',hours:8,salary:400},{id:2,date:'2026-11-16',hours:8.5,salary:425},{id:3,date:'2026-11-17',hours:7.5,salary:375},{id:4,date:'2026-11-18',hours:8,salary:400},{id:5,date:'2026-11-19',hours:9,salary:450}]}
