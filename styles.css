@@ -211,6 +211,20 @@ body {
 .btn-secondary:active { background: #f5f0ff; -webkit-transform: scale(0.98); }
 
 
+
+/* Inline Form Group (two fields side by side) */
+.form-inline {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.form-inline .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+/* Table */
 /* Table */
 .table-wrap {
     overflow-x: auto;

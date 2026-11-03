@@ -54,13 +54,19 @@
                 <label class="form-label" for="modalDate">日期</label>
                 <input class="form-control" id="modalDate" type="date">
             </div>
-            <div class="form-group">
-                <label class="form-label" for="modalHours">时长(小时)</label>
-                <input class="form-control" id="modalHours" type="number" step="0.5" value="10" placeholder="请输入工作时长">
+            <div class="form-inline">
+                <div class="form-group">
+                    <label class="form-label" for="modalHours">时长(小时)</label>
+                    <input class="form-control" id="modalHours" type="number" step="0.5" value="8" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="modalRate">时薪(元/小时)</label>
+                    <input class="form-control" id="modalRate" type="number" step="0.5" value="50" placeholder="0">
+                </div>
             </div>
             <div class="form-group">
-                <label class="form-label" for="modalSalary">薪资(元)</label>
-                <input class="form-control" id="modalSalary" type="number" value="250" placeholder="请输入薪资金额">
+                <label class="form-label">薪资(元)</label>
+                <input class="form-control" id="modalSalary" type="number" readonly value="400">
             </div>
             <div class="form-row">
                 <button class="btn-cancel" onclick="closeModal()">取消</button>
@@ -71,7 +77,7 @@
     <script>
 var defaultData=[{id:1,date:'2026-11-15',hours:8,salary:400},{id:2,date:'2026-11-16',hours:8.5,salary:425},{id:3,date:'2026-11-17',hours:7.5,salary:375},{id:4,date:'2026-11-18',hours:8,salary:400},{id:5,date:'2026-11-19',hours:9,salary:450}];
 
-function norm(r){if(!r)return r;if(r.date===undefined&&r.d!==undefined){r.date=r.d;delete r.d}if(r.hours===undefined&&r.h!==undefined){r.hours=r.h;delete r.h}if(r.salary===undefined&&r.s!==undefined){r.salary=r.s;delete r.s}return r;}
+function norm(r){if(!r)return r;if(r.date===undefined&&r.d!==undefined){r.date=r.d;delete r.d}if(r.hours===undefined&&r.h!==undefined){r.hours=r.h;delete r.h}if(r.salary===undefined&&r.s!==undefined){r.salary=r.s;delete r.s}if(r.rate===undefined&&r.hours&&r.hours!==0){r.rate=r.salary/r.hours}return r;}
 function loadData(){var stored=localStorage.getItem('attendanceData');if(stored){try{return JSON.parse(stored).map(norm)}catch(e){}}return defaultData.map(norm).slice()}
 function saveData(data){localStorage.setItem('attendanceData',JSON.stringify(data))}
 var editingId=-1;
@@ -79,11 +85,12 @@ function groupByMonth(data){var groups={};data.forEach(function(r){var m=r.date.
 function toggleMonth(m){var rows=document.querySelectorAll('[data-month="'+m+'"]');var icon=document.getElementById('icon-'+m);var collapsed=icon.textContent==='▶';if(collapsed){rows.forEach(function(r){r.style.display='';void r.offsetHeight;r.classList.remove('hiding')});icon.textContent='▼'}else{rows.forEach(function(r){r.classList.add('hiding')});icon.textContent='▶';setTimeout(function(){rows.forEach(function(r){if(r.classList.contains('hiding')){r.style.display='none'}})},300)}}
 function renderTable(){var data=loadData();var now=new Date();var cm=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);data=data.filter(function(r){return r.date.substring(0,7)===cm});data.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0});var tbody=document.getElementById('recordBody');var empty=document.getElementById('emptyState');tbody.innerHTML='';if(data.length===0){empty.style.display='block';return}empty.style.display='none';data.forEach(function(r){var row=document.createElement('tr');row.className='record-row';row.innerHTML='<td>'+r.date+'</td><td>'+r.hours+'</td><td>'+r.salary+'</td><td class="actions"><button class="btn-edit" onclick="openEditModal('+r.id+')">编辑</button><button class="btn-delete" onclick="deleteRecord('+r.id+')">删除</button></td>';tbody.appendChild(row)})}
 function deleteRecord(id){if(!confirm('确认删除这条记录？'))return;var data=loadData();data=data.filter(function(r){return r.id!==id});saveData(data);renderTable()}
-function openEditModal(id){var data=loadData();var rec=null;for(var i=0;i<data.length;i++){if(data[i].id===id){rec=data[i];break}}if(!rec){alert('记录不存在');return}editingId=id;document.getElementById('modalTitle').textContent='编辑记录';document.getElementById('modalDate').value=rec.date;document.getElementById('modalHours').value=rec.hours;document.getElementById('modalSalary').value=rec.salary;document.getElementById('modalOverlay').classList.add('active')}
-function openModal(){editingId=-1;document.getElementById('modalTitle').textContent='添加记录';document.getElementById('modalDate').value='';document.getElementById('modalHours').value=10;document.getElementById('modalSalary').value=250;document.getElementById('modalOverlay').classList.add('active')}
+function openEditModal(id){var data=loadData();var rec=null;for(var i=0;i<data.length;i++){if(data[i].id===id){rec=data[i];break}}if(!rec){alert('记录不存在');return}editingId=id;document.getElementById('modalTitle').textContent='编辑记录';document.getElementById('modalDate').value=rec.date;document.getElementById('modalHours').value=rec.hours;document.getElementById('modalRate').value=rec.rate||(rec.hours?rec.salary/rec.hours:0);calcSalary();document.getElementById('modalOverlay').classList.add('active')}
+function openModal(){editingId=-1;document.getElementById('modalTitle').textContent='添加记录';document.getElementById('modalDate').value='';document.getElementById('modalHours').value=8;document.getElementById('modalRate').value=50;calcSalary();document.getElementById('modalOverlay').classList.add('active');document.getElementById('modalHours').oninput=calcSalary;document.getElementById('modalRate').oninput=calcSalary}
+function calcSalary(){var h=parseFloat(document.getElementById('modalHours').value)||0;var r=parseFloat(document.getElementById('modalRate').value)||0;document.getElementById('modalSalary').value=(h*r).toFixed(2)}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('active')}
 function closeModalOnBg(e){if(e.target===document.getElementById('modalOverlay'))closeModal()}
-function saveModal(){var date=document.getElementById('modalDate').value;var hours=parseFloat(document.getElementById('modalHours').value);var salary=parseFloat(document.getElementById('modalSalary').value);if(!date||isNaN(hours)||isNaN(salary)){alert('请填写完整信息');return}var data=loadData();if(editingId===-1){var newId=data.length?Math.max.apply(null,data.map(function(x){return x.id}))+1:1;data.push({id:newId,d:date,h:hours,s:salary})}else{var rec=null;for(var i=0;i<data.length;i++){if(data[i].id===editingId){rec=data[i];break}}if(rec){rec.date=date;rec.hours=hours;rec.salary=salary}}saveData(data);editingId=-1;closeModal();renderTable()}
+function saveModal(){var date=document.getElementById('modalDate').value;var hours=parseFloat(document.getElementById('modalHours').value);var rate=parseFloat(document.getElementById('modalRate').value);var salary=hours*rate;if(!date||isNaN(hours)||isNaN(rate)){alert('请填写完整信息');return}var data=loadData();if(editingId===-1){var newId=data.length?Math.max.apply(null,data.map(function(x){return x.id}))+1:1;data.push({id:newId,date:date,hours:hours,salary:salary,rate:rate})}else{var rec=null;for(var i=0;i<data.length;i++){if(data[i].id===editingId){rec=data[i];break}}if(rec){rec.date=date;rec.hours=hours;rec.salary=salary;rec.rate=rate}}saveData(data);editingId=-1;closeModal();renderTable()}
 renderTable();
 </script>
     <script>

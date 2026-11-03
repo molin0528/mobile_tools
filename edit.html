@@ -24,13 +24,19 @@
                 <label class="form-label" for="editDate">日期</label>
                 <input class="form-control" id="editDate" type="date">
             </div>
-            <div class="form-group">
-                <label class="form-label" for="editHours">时长(小时)</label>
-                <input class="form-control" id="editHours" type="number" step="0.5" value="10" placeholder="请输入工作时长">
+            <div class="form-inline">
+                <div class="form-group">
+                    <label class="form-label" for="editHours">时长(小时)</label>
+                    <input class="form-control" id="editHours" type="number" step="0.5" value="8" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editRate">时薪(元/小时)</label>
+                    <input class="form-control" id="editRate" type="number" step="0.5" value="50" placeholder="0">
+                </div>
             </div>
             <div class="form-group">
-                <label class="form-label" for="editSalary">薪资(元)</label>
-                <input class="form-control" id="editSalary" type="number" value="250" placeholder="请输入薪资金额">
+                <label class="form-label">薪资(元)</label>
+                <input class="form-control" id="editSalary" type="number" readonly value="400">
             </div>
             <div class="form-row">
                 <button class="btn-cancel" onclick="location.href='records.html'">取消</button>
@@ -41,7 +47,7 @@
 <script>
 var defaultData=[{id:1,date:'2026-11-15',hours:8,salary:400},{id:2,date:'2026-11-16',hours:8.5,salary:425},{id:3,date:'2026-11-17',hours:7.5,salary:375},{id:4,date:'2026-11-18',hours:8,salary:400},{id:5,date:'2026-11-19',hours:9,salary:450}];
 
-function norm(r){if(!r)return r;if(r.date===undefined&&r.d!==undefined){r.date=r.d;delete r.d}if(r.hours===undefined&&r.h!==undefined){r.hours=r.h;delete r.h}if(r.salary===undefined&&r.s!==undefined){r.salary=r.s;delete r.s}return r;}
+function norm(r){if(!r)return r;if(r.date===undefined&&r.d!==undefined){r.date=r.d;delete r.d}if(r.hours===undefined&&r.h!==undefined){r.hours=r.h;delete r.h}if(r.salary===undefined&&r.s!==undefined){r.salary=r.s;delete r.s}if(r.rate===undefined&&r.hours&&r.hours!==0){r.rate=r.salary/r.hours}return r;}
 function loadData(){var stored=localStorage.getItem('attendanceData');if(stored){try{return JSON.parse(stored).map(norm)}catch(e){}}return defaultData.map(norm).slice()}
 function saveData(data){localStorage.setItem('attendanceData',JSON.stringify(data))}
 var r=loadData();
@@ -58,20 +64,30 @@ if(idParam!==null&&idParam!==''){
       document.getElementById('pageTitle').textContent='编辑记录';
       document.getElementById('editDate').value=rec.date;
       document.getElementById('editHours').value=rec.hours;
-      document.getElementById('editSalary').value=rec.salary;
+      document.getElementById('editRate').value=rec.rate||(rec.hours?rec.salary/rec.hours:0);
+      calcEditSalary();
+      document.getElementById('editHours').oninput=calcEditSalary;
+      document.getElementById('editRate').oninput=calcEditSalary;
     }else{
       document.getElementById('pageTitle').textContent='添加记录';
       editId=-1;
-      document.getElementById('editHours').value=10;
-      document.getElementById('editSalary').value=250;
+      document.getElementById('editHours').value=8;
+      document.getElementById('editRate').value=50;
+      calcEditSalary();
+      document.getElementById('editHours').oninput=calcEditSalary;
+      document.getElementById('editRate').oninput=calcEditSalary;
     }
   }
 }else{
   document.getElementById('pageTitle').textContent='添加记录';
-  document.getElementById('editHours').value=10;
-  document.getElementById('editSalary').value=250;
+  document.getElementById('editHours').value=8;
+  document.getElementById('editRate').value=50;
+  calcEditSalary();
+  document.getElementById('editHours').oninput=calcEditSalary;
+  document.getElementById('editRate').oninput=calcEditSalary;
 }
-function saveEdit(){var date=document.getElementById('editDate').value;var hours=parseFloat(document.getElementById('editHours').value);var salary=parseFloat(document.getElementById('editSalary').value);if(!date||isNaN(hours)||isNaN(salary)){alert('请填写完整信息');return}if(editId===-1){var newId=r.length?Math.max.apply(null,r.map(function(x){return x.id}))+1:1;r.push({id:newId,d:date,h:hours,s:salary})}else{var rec=null;for(var i=0;i<r.length;i++){if(r[i].id===editId){rec=r[i];break}}if(rec){rec.date=date;rec.hours=hours;rec.salary=salary}}saveData(r);location.href='records.html'}
+function calcEditSalary(){var h=parseFloat(document.getElementById('editHours').value)||0;var rt=parseFloat(document.getElementById('editRate').value)||0;document.getElementById('editSalary').value=(h*rt).toFixed(2)}
+function saveEdit(){var date=document.getElementById('editDate').value;var hours=parseFloat(document.getElementById('editHours').value);var rate=parseFloat(document.getElementById('editRate').value);var salary=hours*rate;if(!date||isNaN(hours)||isNaN(rate)){alert('请填写完整信息');return}if(editId===-1){var newId=r.length?Math.max.apply(null,r.map(function(x){return x.id}))+1:1;r.push({id:newId,date:date,hours:hours,salary:salary,rate:rate})}else{var rec=null;for(var i=0;i<r.length;i++){if(r[i].id===editId){rec=r[i];break}}if(rec){rec.date=date;rec.hours=hours;rec.salary=salary;rec.rate=rate}}saveData(r);location.href='records.html'}
 </script>
     <script>
         if ('serviceWorker' in navigator) {
