@@ -39,8 +39,10 @@
         </div>
     </div>
 <script>
-var defaultData=[{id:1,d:'2026-11-15',h:8,s:400},{id:2,d:'2026-11-16',h:8.5,s:425},{id:3,d:'2026-11-17',h:7.5,s:375},{id:4,d:'2026-11-18',h:8,s:400},{id:5,d:'2026-11-19',h:9,s:450}];
-function loadData(){var stored=localStorage.getItem('attendanceData');if(stored){try{return JSON.parse(stored)}catch(e){}}return defaultData.slice()}
+var defaultData=[{id:1,date:'2026-11-15',hours:8,salary:400},{id:2,date:'2026-11-16',hours:8.5,salary:425},{id:3,date:'2026-11-17',hours:7.5,salary:375},{id:4,date:'2026-11-18',hours:8,salary:400},{id:5,date:'2026-11-19',hours:9,salary:450}];
+
+function norm(r){if(!r)return r;if(r.date===undefined&&r.d!==undefined){r.date=r.d;delete r.d}if(r.hours===undefined&&r.h!==undefined){r.hours=r.h;delete r.h}if(r.salary===undefined&&r.s!==undefined){r.salary=r.s;delete r.s}return r;}
+function loadData(){var stored=localStorage.getItem('attendanceData');if(stored){try{return JSON.parse(stored).map(norm)}catch(e){}}return defaultData.map(norm).slice()}
 function saveData(data){localStorage.setItem('attendanceData',JSON.stringify(data))}
 var r=loadData();
 var params=new URLSearchParams(location.search);
@@ -54,9 +56,9 @@ if(idParam!==null&&idParam!==''){
     for(var i=0;i<r.length;i++){if(r[i].id===id){rec=r[i];break}}
     if(rec){
       document.getElementById('pageTitle').textContent='编辑记录';
-      document.getElementById('editDate').value=rec.d;
-      document.getElementById('editHours').value=rec.h;
-      document.getElementById('editSalary').value=rec.s;
+      document.getElementById('editDate').value=rec.date;
+      document.getElementById('editHours').value=rec.hours;
+      document.getElementById('editSalary').value=rec.salary;
     }else{
       document.getElementById('pageTitle').textContent='添加记录';
       editId=-1;
@@ -69,7 +71,7 @@ if(idParam!==null&&idParam!==''){
   document.getElementById('editHours').value=10;
   document.getElementById('editSalary').value=250;
 }
-function saveEdit(){var date=document.getElementById('editDate').value;var hours=parseFloat(document.getElementById('editHours').value);var salary=parseFloat(document.getElementById('editSalary').value);if(!date||isNaN(hours)||isNaN(salary)){alert('请填写完整信息');return}if(editId===-1){var newId=r.length?Math.max.apply(null,r.map(function(x){return x.id}))+1:1;r.push({id:newId,d:date,h:hours,s:salary})}else{var rec=null;for(var i=0;i<r.length;i++){if(r[i].id===editId){rec=r[i];break}}if(rec){rec.d=date;rec.h=hours;rec.s=salary}}saveData(r);location.href='records.html'}
+function saveEdit(){var date=document.getElementById('editDate').value;var hours=parseFloat(document.getElementById('editHours').value);var salary=parseFloat(document.getElementById('editSalary').value);if(!date||isNaN(hours)||isNaN(salary)){alert('请填写完整信息');return}if(editId===-1){var newId=r.length?Math.max.apply(null,r.map(function(x){return x.id}))+1:1;r.push({id:newId,d:date,h:hours,s:salary})}else{var rec=null;for(var i=0;i<r.length;i++){if(r[i].id===editId){rec=r[i];break}}if(rec){rec.date=date;rec.hours=hours;rec.salary=salary}}saveData(r);location.href='records.html'}
 </script>
     <script>
         if ('serviceWorker' in navigator) {

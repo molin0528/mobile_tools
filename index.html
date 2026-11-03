@@ -71,12 +71,14 @@
             {id:3,date:'2026-11-17',hours:7.5,salary:375,status:'早退',remark:'早退1小时'},
             {id:4,date:'2026-11-18',hours:8,salary:400,status:'正常',remark:'正常考勤'},
             {id:5,date:'2026-11-19',hours:9,salary:450,status:'加班',remark:'全天加班'}        ];
-        function loadRecords() {
+        
+function norm(r){if(!r)return r;if(r.date===undefined&&r.d!==undefined){r.date=r.d;delete r.d}if(r.hours===undefined&&r.h!==undefined){r.hours=r.h;delete r.h}if(r.salary===undefined&&r.s!==undefined){r.salary=r.s;delete r.s}return r;}
+function loadRecords() {
             const stored = localStorage.getItem('attendanceData');
             if (stored) {
                 try {
                     const data = JSON.parse(stored);
-                    return data.map(r => ({id:r.id, date:r.d, hours:r.h, salary:r.s, status:'正常', remark:''}));
+                    return data.map(norm).map(r => ({id:r.id, date:r.date, hours:r.hours, salary:r.salary, status:'正常', remark:''}));
                 } catch(e) {}
             }
             return defaultRecords.slice();
@@ -104,7 +106,7 @@
         document.getElementById('remainingDays').textContent = remainingDays;
     </script>
     <script>
-        function loadCalData(){var s=localStorage.getItem('attendanceData');if(s){try{return JSON.parse(s)}catch(e){}}return [{id:1,d:'2026-11-15',h:8,s:400},{id:2,d:'2026-11-16',h:8.5,s:425},{id:3,d:'2026-11-17',h:7.5,s:375},{id:4,d:'2026-11-18',h:8,s:400},{id:5,d:'2026-11-19',h:9,s:450}]}
+        function loadCalData(){var s=localStorage.getItem('attendanceData');if(s){try{return JSON.parse(s).map(norm)}catch(e){}}return [{id:1,date:'2026-11-15',hours:8,salary:400},{id:2,date:'2026-11-16',hours:8.5,salary:425},{id:3,date:'2026-11-17',hours:7.5,salary:375},{id:4,date:'2026-11-18',hours:8,salary:400},{id:5,date:'2026-11-19',hours:9,salary:450}]}
         var calData=loadCalData();
         var calCur=new Date();
         function shiftCal(n){calCur.setMonth(calCur.getMonth()+n);renderCal();}
@@ -121,12 +123,12 @@
             
             // 该月有记录的天数
             var monthRecords = calData.filter(function(r){
-                var d=new Date(r.d);
+                var d=new Date(r.date);
                 return d.getFullYear()===y && d.getMonth()===m;
             });
             var monthWorkDays = monthRecords.length;
-            var monthTotalHours = monthRecords.reduce(function(s,r){return s + r.h;}, 0);
-            var monthTotalSalary = monthRecords.reduce(function(s,r){return s + r.s;}, 0);
+            var monthTotalHours = monthRecords.reduce(function(s,r){return s + r.hours;}, 0);
+            var monthTotalSalary = monthRecords.reduce(function(s,r){return s + r.salary;}, 0);
             var restDays = Math.max(0, elapsedDays - monthWorkDays);
             var remainingDays = Math.max(0, totalDays - elapsedDays);
             
@@ -146,7 +148,7 @@
             for(var i=0;i<firstDay;i++){var c=document.createElement('div');c.className='cal-cell';grid.appendChild(c);}
             for(var d=1;d<=totalDays;d++){
                 var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-                var has=calData.some(function(r){return r.d===ds;});
+                var has=calData.some(function(r){return r.date===ds;});
                 var isFuture = (y>today.getFullYear()) || (y===today.getFullYear() && m>today.getMonth()) || (y===today.getFullYear() && m===today.getMonth() && d>today.getDate());
                 var isToday = (d===today.getDate()&&m===today.getMonth()&&y===today.getFullYear());
                 var c=document.createElement('div'); 
