@@ -1,7 +1,7 @@
 {
-  "name": "考勤打卡",
+  "name": "考勤统计",
   "short_name": "考勤",
-  "description": "考勤打卡应用",
+  "description": "考勤统计应用",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
